@@ -10,16 +10,18 @@ const Index = () => {
 
   useEffect(() => {
     const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
       if (session) {
         const { data: profile } = await supabase
-          .from('profiles')
-          .select('role')
-          .eq('id', session.user.id)
+          .from("profiles")
+          .select("role")
+          .eq("id", session.user.id)
           .single();
 
         if (profile) {
-          if (['okk', 'sekjend', 'ketum'].includes(profile.role)) {
+          if (["okk", "sekjend", "ketum"].includes(profile.role)) {
             navigate("/dashboard-admin");
           } else {
             navigate("/dashboard");
@@ -34,17 +36,20 @@ const Index = () => {
     {
       icon: FileText,
       title: "Pengajuan SK Digital",
-      description: "Proses pengajuan SK yang mudah, cepat, dan terorganisir secara digital"
+      description:
+        "Proses pengajuan SK yang mudah, cepat, dan terorganisir secara digital",
     },
     {
       icon: Users,
       title: "Manajemen Pengurus",
-      description: "Input dan kelola data pengurus DPD dengan sistem yang terintegrasi"
+      description:
+        "Input dan kelola data pengurus DPD dengan sistem yang terintegrasi",
     },
     {
       icon: Shield,
       title: "Tracking Real-time",
-      description: "Pantau status persetujuan SK secara real-time dari OKK hingga Ketum"
+      description:
+        "Pantau status persetujuan SK secara real-time dari OKK hingga Ketum",
     },
   ];
 
@@ -62,15 +67,16 @@ const Index = () => {
           <div className="space-y-4">
             <h1 className="text-5xl md:text-6xl font-bold">
               <span className="bg-gradient-primary bg-clip-text text-transparent">
-                HANURA SK Pro
+                H-Gate050: MUSDA System
               </span>
             </h1>
             <p className="text-xl md:text-2xl text-muted-foreground font-medium">
               Sistem Pengajuan SK dan Laporan MUSDA
             </p>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Platform digital terintegrasi untuk memudahkan proses pengajuan Surat Keputusan 
-              dan pelaporan hasil Musyawarah Daerah Partai HANURA
+              Platform digital terintegrasi untuk memudahkan proses pengajuan
+              Surat Keputusan dan pelaporan hasil Musyawarah Daerah Partai
+              HANURA
             </p>
           </div>
 
@@ -121,7 +127,8 @@ const Index = () => {
           <div className="bg-card rounded-xl p-8 shadow-large text-center">
             <h2 className="text-2xl font-bold mb-4">Proses yang Sederhana</h2>
             <p className="text-muted-foreground mb-6">
-              Sistem kami dirancang untuk memudahkan DPD dalam mengajukan SK dengan 3 langkah mudah:
+              Sistem kami dirancang untuk memudahkan DPD dalam mengajukan SK
+              dengan 3 langkah mudah:
             </p>
             <div className="grid gap-4 md:grid-cols-3 text-left">
               <div className="space-y-2">

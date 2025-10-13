@@ -1,5 +1,11 @@
 import { useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { FileText, Users, CheckCircle2, LogOut } from "lucide-react";
@@ -16,7 +22,8 @@ const DashboardDPD = () => {
     {
       number: 1,
       title: "Upload Laporan MUSDA",
-      description: "Upload file PDF laporan hasil MUSDA dan informasi pelaksanaan",
+      description:
+        "Upload file PDF laporan hasil MUSDA dan informasi pelaksanaan",
       icon: FileText,
       completed: false,
       route: "/upload-laporan",
@@ -32,7 +39,8 @@ const DashboardDPD = () => {
     {
       number: 3,
       title: "Tracking Progress SK",
-      description: "Pantau status persetujuan SK dari OKK, Sekjend, hingga Ketum",
+      description:
+        "Pantau status persetujuan SK dari OKK, Sekjend, hingga Ketum",
       icon: CheckCircle2,
       completed: false,
       route: "/progress-sk",
@@ -60,7 +68,9 @@ const DashboardDPD = () => {
             <div className="flex items-center gap-4">
               <img src={hanuraLogo} alt="HANURA" className="h-12 w-auto" />
               <div>
-                <h1 className="text-xl font-bold text-foreground">HANURA SK Pro</h1>
+                <h1 className="text-xl font-bold text-foreground">
+                  H-Gate050: MUSDA System
+                </h1>
                 <p className="text-sm text-muted-foreground">Dashboard DPD</p>
               </div>
             </div>
@@ -131,13 +141,19 @@ const DashboardDPD = () => {
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-sm text-muted-foreground">{step.description}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {step.description}
+                  </p>
                   <Button
                     className="mt-4 w-full"
                     variant={isActive ? "default" : "outline"}
                     onClick={() => navigate(step.route)}
                   >
-                    {isCompleted ? "Lihat Detail" : isActive ? "Mulai" : "Mulai"}
+                    {isCompleted
+                      ? "Lihat Detail"
+                      : isActive
+                      ? "Mulai"
+                      : "Mulai"}
                   </Button>
                 </CardContent>
               </Card>
@@ -152,7 +168,8 @@ const DashboardDPD = () => {
           </CardHeader>
           <CardContent>
             <p className="text-sm text-muted-foreground mb-4">
-              Jika Anda mengalami kesulitan dalam proses pengajuan SK, silakan hubungi tim dukungan kami.
+              Jika Anda mengalami kesulitan dalam proses pengajuan SK, silakan
+              hubungi tim dukungan kami.
             </p>
             <Button variant="outline" size="sm">
               Hubungi Dukungan

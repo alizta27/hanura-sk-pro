@@ -1,10 +1,23 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, FileText, CheckCircle2, XCircle, Clock, AlertCircle } from "lucide-react";
+import {
+  ArrowLeft,
+  FileText,
+  CheckCircle2,
+  XCircle,
+  Clock,
+  AlertCircle,
+} from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -28,14 +41,33 @@ interface PengajuanSK {
   created_at: string;
 }
 
-const STATUS_CONFIG: Record<PengajuanStatus, { label: string; color: string; icon: any }> = {
+const STATUS_CONFIG: Record<
+  PengajuanStatus,
+  { label: string; color: string; icon: any }
+> = {
   draft: { label: "Draft", color: "bg-gray-500", icon: FileText },
   diupload: { label: "Diupload", color: "bg-blue-500", icon: Clock },
-  diverifikasi_okk: { label: "Diverifikasi OKK", color: "bg-yellow-500", icon: Clock },
+  diverifikasi_okk: {
+    label: "Diverifikasi OKK",
+    color: "bg-yellow-500",
+    icon: Clock,
+  },
   ditolak_okk: { label: "Ditolak OKK", color: "bg-red-500", icon: XCircle },
-  disetujui_sekjend: { label: "Disetujui Sekjend", color: "bg-green-500", icon: CheckCircle2 },
-  ditolak_sekjend: { label: "Ditolak Sekjend", color: "bg-red-500", icon: XCircle },
-  disetujui_ketum: { label: "Disetujui Ketum", color: "bg-green-500", icon: CheckCircle2 },
+  disetujui_sekjend: {
+    label: "Disetujui Sekjend",
+    color: "bg-green-500",
+    icon: CheckCircle2,
+  },
+  ditolak_sekjend: {
+    label: "Ditolak Sekjend",
+    color: "bg-red-500",
+    icon: XCircle,
+  },
+  disetujui_ketum: {
+    label: "Disetujui Ketum",
+    color: "bg-green-500",
+    icon: CheckCircle2,
+  },
   ditolak_ketum: { label: "Ditolak Ketum", color: "bg-red-500", icon: XCircle },
   sk_terbit: { label: "SK Terbit", color: "bg-primary", icon: CheckCircle2 },
 };
@@ -51,7 +83,9 @@ const ProgressPengajuanSK = () => {
 
   const loadPengajuan = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) {
         toast.error("User tidak terautentikasi");
         navigate("/auth");
@@ -59,10 +93,10 @@ const ProgressPengajuanSK = () => {
       }
 
       const { data, error } = await supabase
-        .from('pengajuan_sk')
-        .select('*')
-        .eq('dpd_id', user.id)
-        .order('created_at', { ascending: false })
+        .from("pengajuan_sk")
+        .select("*")
+        .eq("dpd_id", user.id)
+        .order("created_at", { ascending: false })
         .limit(1)
         .maybeSingle();
 
@@ -97,7 +131,9 @@ const ProgressPengajuanSK = () => {
     return progress[status] || 0;
   };
 
-  const getStepStatus = (step: string): "completed" | "current" | "pending" | "rejected" => {
+  const getStepStatus = (
+    step: string
+  ): "completed" | "current" | "pending" | "rejected" => {
     if (!pengajuan) return "pending";
 
     const { status } = pengajuan;
@@ -116,14 +152,20 @@ const ProgressPengajuanSK = () => {
     }
 
     if (step === "sekjend") {
-      if (["draft", "diupload", "diverifikasi_okk", "ditolak_okk"].includes(status)) return "pending";
+      if (
+        ["draft", "diupload", "diverifikasi_okk", "ditolak_okk"].includes(
+          status
+        )
+      )
+        return "pending";
       if (status === "ditolak_sekjend") return "rejected";
       if (status === "disetujui_sekjend") return "current";
       return "completed";
     }
 
     if (step === "ketum") {
-      if (!["disetujui_ketum", "ditolak_ketum", "sk_terbit"].includes(status)) return "pending";
+      if (!["disetujui_ketum", "ditolak_ketum", "sk_terbit"].includes(status))
+        return "pending";
       if (status === "ditolak_ketum") return "rejected";
       if (status === "disetujui_ketum") return "current";
       return "completed";
@@ -157,7 +199,9 @@ const ProgressPengajuanSK = () => {
         <Card className="max-w-md">
           <CardHeader>
             <CardTitle>Tidak Ada Data</CardTitle>
-            <CardDescription>Belum ada pengajuan SK yang ditemukan</CardDescription>
+            <CardDescription>
+              Belum ada pengajuan SK yang ditemukan
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <Button onClick={() => navigate("/dashboard")} className="w-full">
@@ -181,8 +225,12 @@ const ProgressPengajuanSK = () => {
           <div className="flex items-center gap-4">
             <img src={hanuraLogo} alt="HANURA" className="h-12 w-auto" />
             <div>
-              <h1 className="text-xl font-bold text-foreground">HANURA SK Pro</h1>
-              <p className="text-sm text-muted-foreground">Progress Pengajuan SK</p>
+              <h1 className="text-xl font-bold text-foreground">
+                H-Gate050: MUSDA System
+              </h1>
+              <p className="text-sm text-muted-foreground">
+                Progress Pengajuan SK
+              </p>
             </div>
           </div>
         </div>
@@ -214,7 +262,10 @@ const ProgressPengajuanSK = () => {
               <div>
                 <CardTitle>Status Pengajuan</CardTitle>
                 <CardDescription>
-                  Diajukan pada {format(new Date(pengajuan.created_at), "PPP", { locale: id })}
+                  Diajukan pada{" "}
+                  {format(new Date(pengajuan.created_at), "PPP", {
+                    locale: id,
+                  })}
                 </CardDescription>
               </div>
               <Badge className={`${currentStatus.color} text-white`}>
@@ -231,7 +282,9 @@ const ProgressPengajuanSK = () => {
                   <div>
                     <span className="text-muted-foreground">Tanggal:</span>
                     <p className="font-medium">
-                      {format(new Date(pengajuan.tanggal_musda), "PPP", { locale: id })}
+                      {format(new Date(pengajuan.tanggal_musda), "PPP", {
+                        locale: id,
+                      })}
                     </p>
                   </div>
                   <div>
@@ -245,17 +298,25 @@ const ProgressPengajuanSK = () => {
                 <h3 className="font-semibold mb-4">Timeline Proses</h3>
                 <div className="space-y-4">
                   <div className="flex items-center gap-4">
-                    <div className={`flex h-10 w-10 items-center justify-center rounded-full ${
-                      getStepStatus("upload") === "completed" ? "bg-primary text-white" :
-                      getStepStatus("upload") === "current" ? "bg-primary/20 text-primary" :
-                      "bg-muted text-muted-foreground"
-                    }`}>
+                    <div
+                      className={`flex h-10 w-10 items-center justify-center rounded-full ${
+                        getStepStatus("upload") === "completed"
+                          ? "bg-primary text-white"
+                          : getStepStatus("upload") === "current"
+                          ? "bg-primary/20 text-primary"
+                          : "bg-muted text-muted-foreground"
+                      }`}
+                    >
                       <FileText className="h-5 w-5" />
                     </div>
                     <div className="flex-1">
                       <p className="font-medium">Dokumen Diupload</p>
                       <p className="text-sm text-muted-foreground">
-                        {pengajuan.created_at ? format(new Date(pengajuan.created_at), "PPP", { locale: id }) : "-"}
+                        {pengajuan.created_at
+                          ? format(new Date(pengajuan.created_at), "PPP", {
+                              locale: id,
+                            })
+                          : "-"}
                       </p>
                     </div>
                     {getStepStatus("upload") === "completed" && (
@@ -264,18 +325,27 @@ const ProgressPengajuanSK = () => {
                   </div>
 
                   <div className="flex items-center gap-4">
-                    <div className={`flex h-10 w-10 items-center justify-center rounded-full ${
-                      getStepStatus("okk") === "completed" ? "bg-primary text-white" :
-                      getStepStatus("okk") === "current" ? "bg-primary/20 text-primary" :
-                      getStepStatus("okk") === "rejected" ? "bg-destructive text-white" :
-                      "bg-muted text-muted-foreground"
-                    }`}>
+                    <div
+                      className={`flex h-10 w-10 items-center justify-center rounded-full ${
+                        getStepStatus("okk") === "completed"
+                          ? "bg-primary text-white"
+                          : getStepStatus("okk") === "current"
+                          ? "bg-primary/20 text-primary"
+                          : getStepStatus("okk") === "rejected"
+                          ? "bg-destructive text-white"
+                          : "bg-muted text-muted-foreground"
+                      }`}
+                    >
                       <CheckCircle2 className="h-5 w-5" />
                     </div>
                     <div className="flex-1">
                       <p className="font-medium">Verifikasi OKK</p>
                       <p className="text-sm text-muted-foreground">
-                        {pengajuan.verified_okk_at ? format(new Date(pengajuan.verified_okk_at), "PPP", { locale: id }) : "Menunggu verifikasi"}
+                        {pengajuan.verified_okk_at
+                          ? format(new Date(pengajuan.verified_okk_at), "PPP", {
+                              locale: id,
+                            })
+                          : "Menunggu verifikasi"}
                       </p>
                     </div>
                     {getStepStatus("okk") === "completed" && (
@@ -287,18 +357,29 @@ const ProgressPengajuanSK = () => {
                   </div>
 
                   <div className="flex items-center gap-4">
-                    <div className={`flex h-10 w-10 items-center justify-center rounded-full ${
-                      getStepStatus("sekjend") === "completed" ? "bg-primary text-white" :
-                      getStepStatus("sekjend") === "current" ? "bg-primary/20 text-primary" :
-                      getStepStatus("sekjend") === "rejected" ? "bg-destructive text-white" :
-                      "bg-muted text-muted-foreground"
-                    }`}>
+                    <div
+                      className={`flex h-10 w-10 items-center justify-center rounded-full ${
+                        getStepStatus("sekjend") === "completed"
+                          ? "bg-primary text-white"
+                          : getStepStatus("sekjend") === "current"
+                          ? "bg-primary/20 text-primary"
+                          : getStepStatus("sekjend") === "rejected"
+                          ? "bg-destructive text-white"
+                          : "bg-muted text-muted-foreground"
+                      }`}
+                    >
                       <CheckCircle2 className="h-5 w-5" />
                     </div>
                     <div className="flex-1">
                       <p className="font-medium">Persetujuan Sekjend</p>
                       <p className="text-sm text-muted-foreground">
-                        {pengajuan.approved_sekjend_at ? format(new Date(pengajuan.approved_sekjend_at), "PPP", { locale: id }) : "Menunggu persetujuan"}
+                        {pengajuan.approved_sekjend_at
+                          ? format(
+                              new Date(pengajuan.approved_sekjend_at),
+                              "PPP",
+                              { locale: id }
+                            )
+                          : "Menunggu persetujuan"}
                       </p>
                     </div>
                     {getStepStatus("sekjend") === "completed" && (
@@ -310,18 +391,29 @@ const ProgressPengajuanSK = () => {
                   </div>
 
                   <div className="flex items-center gap-4">
-                    <div className={`flex h-10 w-10 items-center justify-center rounded-full ${
-                      getStepStatus("ketum") === "completed" ? "bg-primary text-white" :
-                      getStepStatus("ketum") === "current" ? "bg-primary/20 text-primary" :
-                      getStepStatus("ketum") === "rejected" ? "bg-destructive text-white" :
-                      "bg-muted text-muted-foreground"
-                    }`}>
+                    <div
+                      className={`flex h-10 w-10 items-center justify-center rounded-full ${
+                        getStepStatus("ketum") === "completed"
+                          ? "bg-primary text-white"
+                          : getStepStatus("ketum") === "current"
+                          ? "bg-primary/20 text-primary"
+                          : getStepStatus("ketum") === "rejected"
+                          ? "bg-destructive text-white"
+                          : "bg-muted text-muted-foreground"
+                      }`}
+                    >
                       <CheckCircle2 className="h-5 w-5" />
                     </div>
                     <div className="flex-1">
                       <p className="font-medium">Persetujuan Ketum</p>
                       <p className="text-sm text-muted-foreground">
-                        {pengajuan.approved_ketum_at ? format(new Date(pengajuan.approved_ketum_at), "PPP", { locale: id }) : "Menunggu persetujuan"}
+                        {pengajuan.approved_ketum_at
+                          ? format(
+                              new Date(pengajuan.approved_ketum_at),
+                              "PPP",
+                              { locale: id }
+                            )
+                          : "Menunggu persetujuan"}
                       </p>
                     </div>
                     {getStepStatus("ketum") === "completed" && (
@@ -333,16 +425,23 @@ const ProgressPengajuanSK = () => {
                   </div>
 
                   <div className="flex items-center gap-4">
-                    <div className={`flex h-10 w-10 items-center justify-center rounded-full ${
-                      getStepStatus("terbit") === "completed" ? "bg-success text-white" :
-                      "bg-muted text-muted-foreground"
-                    }`}>
+                    <div
+                      className={`flex h-10 w-10 items-center justify-center rounded-full ${
+                        getStepStatus("terbit") === "completed"
+                          ? "bg-success text-white"
+                          : "bg-muted text-muted-foreground"
+                      }`}
+                    >
                       <FileText className="h-5 w-5" />
                     </div>
                     <div className="flex-1">
                       <p className="font-medium">SK Terbit</p>
                       <p className="text-sm text-muted-foreground">
-                        {pengajuan.sk_terbit_at ? format(new Date(pengajuan.sk_terbit_at), "PPP", { locale: id }) : "Belum terbit"}
+                        {pengajuan.sk_terbit_at
+                          ? format(new Date(pengajuan.sk_terbit_at), "PPP", {
+                              locale: id,
+                            })
+                          : "Belum terbit"}
                       </p>
                     </div>
                     {getStepStatus("terbit") === "completed" && (
@@ -355,7 +454,9 @@ const ProgressPengajuanSK = () => {
               <div className="border-t pt-4">
                 <div className="flex items-center gap-2 mb-2">
                   <div className="flex-1">
-                    <div className="text-sm text-muted-foreground mb-1">Progress Keseluruhan</div>
+                    <div className="text-sm text-muted-foreground mb-1">
+                      Progress Keseluruhan
+                    </div>
                     <Progress value={progressValue} className="h-2" />
                   </div>
                   <span className="text-sm font-medium">{progressValue}%</span>
@@ -370,7 +471,9 @@ const ProgressPengajuanSK = () => {
             <CardHeader>
               <div className="flex items-center gap-2">
                 <AlertCircle className="h-5 w-5 text-destructive" />
-                <CardTitle className="text-destructive">Catatan Revisi</CardTitle>
+                <CardTitle className="text-destructive">
+                  Catatan Revisi
+                </CardTitle>
               </div>
             </CardHeader>
             <CardContent>
@@ -387,7 +490,9 @@ const ProgressPengajuanSK = () => {
             <CardHeader>
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="h-5 w-5 text-success" />
-                <CardTitle className="text-success">SK Berhasil Terbit!</CardTitle>
+                <CardTitle className="text-success">
+                  SK Berhasil Terbit!
+                </CardTitle>
               </div>
               <CardDescription>
                 Selamat! Surat Keputusan kepengurusan DPD Anda telah terbit

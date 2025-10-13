@@ -1,17 +1,43 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { ArrowLeft, CheckCircle, XCircle, FileText, Download, Eye } from "lucide-react";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  ArrowLeft,
+  CheckCircle,
+  XCircle,
+  FileText,
+  Download,
+  Eye,
+} from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { format } from "date-fns";
-import { id } from "date-fns/locale";
+import { id as dateId } from "date-fns/locale";
 import hanuraLogo from "@/assets/hanura-logo.jpg";
 import { getSignedUrl } from "@/lib/storage";
 import type { Database } from "@/integrations/supabase/types";
@@ -67,7 +93,9 @@ const DetailPengajuan = () => {
 
   const loadUserRole = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) {
         toast.error("User tidak terautentikasi");
         navigate("/auth");
@@ -75,14 +103,14 @@ const DetailPengajuan = () => {
       }
 
       const { data, error } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', user.id)
+        .from("profiles")
+        .select("role")
+        .eq("id", user.id)
         .single();
 
       if (error) throw error;
 
-      if (data && ['okk', 'sekjend', 'ketum'].includes(data.role)) {
+      if (data && ["okk", "sekjend", "ketum"].includes(data.role)) {
         setUserRole(data.role as AppRole);
       } else {
         toast.error("Akses ditolak");
@@ -97,8 +125,9 @@ const DetailPengajuan = () => {
   const loadPengajuan = async () => {
     try {
       const { data, error } = await supabase
-        .from('pengajuan_sk')
-        .select(`
+        .from("pengajuan_sk")
+        .select(
+          `
           id,
           status,
           tanggal_musda,
@@ -110,8 +139,9 @@ const DetailPengajuan = () => {
             full_name,
             provinsi
           )
-        `)
-        .eq('id', id)
+        `
+        )
+        .eq("id", id)
         .single();
 
       if (error) throw error;
@@ -129,10 +159,10 @@ const DetailPengajuan = () => {
   const loadPengurus = async () => {
     try {
       const { data, error } = await supabase
-        .from('pengurus')
-        .select('*')
-        .eq('pengajuan_id', id)
-        .order('urutan', { ascending: true });
+        .from("pengurus")
+        .select("*")
+        .eq("pengajuan_id", id)
+        .order("urutan", { ascending: true });
 
       if (error) throw error;
 
@@ -151,52 +181,54 @@ const DetailPengajuan = () => {
     setActionLoading(true);
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) throw new Error("User tidak terautentikasi");
 
       let newStatus: PengajuanStatus;
       let updateData: any = {};
 
-      if (userRole === 'okk') {
+      if (userRole === "okk") {
         if (approved) {
-          newStatus = 'diverifikasi_okk';
+          newStatus = "diverifikasi_okk";
           updateData = {
             status: newStatus,
             verified_by_okk: user.id,
             verified_okk_at: new Date().toISOString(),
           };
         } else {
-          newStatus = 'ditolak_okk';
+          newStatus = "ditolak_okk";
           updateData = {
             status: newStatus,
             catatan_revisi: catatanRevisi,
           };
         }
-      } else if (userRole === 'sekjend') {
+      } else if (userRole === "sekjend") {
         if (approved) {
-          newStatus = 'disetujui_sekjend';
+          newStatus = "disetujui_sekjend";
           updateData = {
             status: newStatus,
             approved_by_sekjend: user.id,
             approved_sekjend_at: new Date().toISOString(),
           };
         } else {
-          newStatus = 'ditolak_sekjend';
+          newStatus = "ditolak_sekjend";
           updateData = {
             status: newStatus,
             catatan_revisi: catatanRevisi,
           };
         }
-      } else if (userRole === 'ketum') {
+      } else if (userRole === "ketum") {
         if (approved) {
-          newStatus = 'disetujui_ketum';
+          newStatus = "disetujui_ketum";
           updateData = {
             status: newStatus,
             approved_by_ketum: user.id,
             approved_ketum_at: new Date().toISOString(),
           };
         } else {
-          newStatus = 'ditolak_ketum';
+          newStatus = "ditolak_ketum";
           updateData = {
             status: newStatus,
             catatan_revisi: catatanRevisi,
@@ -207,13 +239,15 @@ const DetailPengajuan = () => {
       }
 
       const { error } = await supabase
-        .from('pengajuan_sk')
+        .from("pengajuan_sk")
         .update(updateData)
-        .eq('id', id);
+        .eq("id", id);
 
       if (error) throw error;
 
-      toast.success(approved ? "Pengajuan berhasil disetujui" : "Pengajuan ditolak");
+      toast.success(
+        approved ? "Pengajuan berhasil disetujui" : "Pengajuan ditolak"
+      );
       navigate("/dashboard-admin");
     } catch (error) {
       console.error("Error updating pengajuan:", error);
@@ -228,12 +262,12 @@ const DetailPengajuan = () => {
 
     try {
       const { error } = await supabase
-        .from('pengajuan_sk')
+        .from("pengajuan_sk")
         .update({
-          status: 'sk_terbit',
+          status: "sk_terbit",
           sk_terbit_at: new Date().toISOString(),
         })
-        .eq('id', id);
+        .eq("id", id);
 
       if (error) throw error;
 
@@ -248,7 +282,9 @@ const DetailPengajuan = () => {
   };
 
   const handleViewPdf = async (path: string) => {
-    const bucket = path.includes('laporan-musda') ? 'laporan-musda' : 'ktp-pengurus';
+    const bucket = path.includes("laporan-musda")
+      ? "laporan-musda"
+      : "ktp-pengurus";
     const signedUrl = await getSignedUrl(bucket, path);
 
     if (signedUrl) {
@@ -262,21 +298,24 @@ const DetailPengajuan = () => {
   const canApprove = () => {
     if (!pengajuan || !userRole) return false;
 
-    if (userRole === 'okk' && pengajuan.status === 'diupload') return true;
-    if (userRole === 'sekjend' && pengajuan.status === 'diverifikasi_okk') return true;
-    if (userRole === 'ketum' && pengajuan.status === 'disetujui_sekjend') return true;
+    if (userRole === "okk" && pengajuan?.status === "diupload") return true;
+    if (userRole === "sekjend" && pengajuan?.status === "diverifikasi_okk")
+      return true;
+    if (userRole === "ketum" && pengajuan?.status === "disetujui_sekjend")
+      return true;
 
     return false;
   };
 
   const canPublishSK = () => {
-    return userRole === 'ketum' && pengajuan?.status === 'disetujui_ketum';
+    return userRole === "ketum" && pengajuan?.status === "disetujui_ketum";
   };
 
-  const perempuanCount = pengurusList.filter(p => p.jenis_kelamin === "Perempuan").length;
-  const perempuanPercentage = pengurusList.length > 0
-    ? (perempuanCount / pengurusList.length) * 100
-    : 0;
+  const perempuanCount = pengurusList.filter(
+    (p) => p.jenis_kelamin === "Perempuan"
+  ).length;
+  const perempuanPercentage =
+    pengurusList.length > 0 ? (perempuanCount / pengurusList.length) * 100 : 0;
 
   if (loading) {
     return (
@@ -298,7 +337,10 @@ const DetailPengajuan = () => {
             <CardDescription>Pengajuan tidak ditemukan</CardDescription>
           </CardHeader>
           <CardContent>
-            <Button onClick={() => navigate("/dashboard-admin")} className="w-full">
+            <Button
+              onClick={() => navigate("/dashboard-admin")}
+              className="w-full"
+            >
               Kembali ke Dashboard
             </Button>
           </CardContent>
@@ -314,8 +356,12 @@ const DetailPengajuan = () => {
           <div className="flex items-center gap-4">
             <img src={hanuraLogo} alt="HANURA" className="h-12 w-auto" />
             <div>
-              <h1 className="text-xl font-bold text-foreground">HANURA SK Pro</h1>
-              <p className="text-sm text-muted-foreground">Detail Pengajuan SK</p>
+              <h1 className="text-xl font-bold text-foreground">
+                H-Gate050: MUSDA System
+              </h1>
+              <p className="text-sm text-muted-foreground">
+                Detail Pengajuan SK
+              </p>
             </div>
           </div>
         </div>
@@ -341,44 +387,62 @@ const DetailPengajuan = () => {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Label className="text-muted-foreground">DPD</Label>
-                    <p className="font-semibold">{pengajuan.profiles.full_name}</p>
-                  </div>
-                  <div>
-                    <Label className="text-muted-foreground">Provinsi</Label>
-                    <p className="font-semibold">{pengajuan.profiles.provinsi || "-"}</p>
-                  </div>
-                  <div>
-                    <Label className="text-muted-foreground">Tanggal MUSDA</Label>
                     <p className="font-semibold">
-                      {format(new Date(pengajuan.tanggal_musda), "PPP", { locale: id })}
+                      {pengajuan?.profiles?.full_name}
                     </p>
                   </div>
                   <div>
-                    <Label className="text-muted-foreground">Lokasi MUSDA</Label>
-                    <p className="font-semibold">{pengajuan.lokasi_musda}</p>
+                    <Label className="text-muted-foreground">Provinsi</Label>
+                    <p className="font-semibold">
+                      {pengajuan?.profiles?.provinsi || "-"}
+                    </p>
                   </div>
                   <div>
-                    <Label className="text-muted-foreground">Tanggal Pengajuan</Label>
+                    <Label className="text-muted-foreground">
+                      Tanggal MUSDA
+                    </Label>
                     <p className="font-semibold">
-                      {format(new Date(pengajuan.created_at), "PPP", { locale: id })}
+                      {format(new Date(pengajuan?.tanggal_musda), "PPP", {
+                        locale: dateId,
+                      })}
+                    </p>
+                  </div>
+                  <div>
+                    <Label className="text-muted-foreground">
+                      Lokasi MUSDA
+                    </Label>
+                    <p className="font-semibold">{pengajuan?.lokasi_musda}</p>
+                  </div>
+                  <div>
+                    <Label className="text-muted-foreground">
+                      Tanggal Pengajuan
+                    </Label>
+                    <p className="font-semibold">
+                      {format(new Date(pengajuan?.created_at), "PPP", {
+                        locale: dateId,
+                      })}
                     </p>
                   </div>
                   <div>
                     <Label className="text-muted-foreground">Status</Label>
                     <div className="mt-1">
-                      <Badge>{pengajuan.status}</Badge>
+                      <Badge>{pengajuan?.status}</Badge>
                     </div>
                   </div>
                 </div>
 
-                {pengajuan.file_laporan_musda && (
+                {pengajuan?.file_laporan_musda && (
                   <div className="border-t pt-4">
-                    <Label className="text-muted-foreground">Laporan MUSDA</Label>
+                    <Label className="text-muted-foreground">
+                      Laporan MUSDA
+                    </Label>
                     <div className="flex gap-2 mt-2">
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => handleViewPdf(pengajuan.file_laporan_musda!)}
+                        onClick={() =>
+                          handleViewPdf(pengajuan?.file_laporan_musda!)
+                        }
                       >
                         <Eye className="mr-2 h-4 w-4" />
                         Lihat PDF
@@ -387,8 +451,11 @@ const DetailPengajuan = () => {
                         size="sm"
                         variant="outline"
                         onClick={async () => {
-                          const signedUrl = await getSignedUrl('laporan-musda', pengajuan.file_laporan_musda!);
-                          if (signedUrl) window.open(signedUrl, '_blank');
+                          const signedUrl = await getSignedUrl(
+                            "laporan-musda",
+                            pengajuan?.file_laporan_musda!
+                          );
+                          if (signedUrl) window.open(signedUrl, "_blank");
                         }}
                       >
                         <Download className="mr-2 h-4 w-4" />
@@ -404,7 +471,11 @@ const DetailPengajuan = () => {
               <CardHeader>
                 <div className="flex justify-between items-center">
                   <CardTitle>Data Pengurus ({pengurusList.length})</CardTitle>
-                  <Badge variant={perempuanPercentage >= 30 ? "default" : "destructive"}>
+                  <Badge
+                    variant={
+                      perempuanPercentage >= 30 ? "default" : "destructive"
+                    }
+                  >
                     Perempuan: {perempuanPercentage.toFixed(1)}%
                   </Badge>
                 </div>
@@ -429,7 +500,9 @@ const DetailPengajuan = () => {
                       {pengurusList.map((pengurus, index) => (
                         <TableRow key={pengurus.id}>
                           <TableCell>{index + 1}</TableCell>
-                          <TableCell className="font-medium">{pengurus.jabatan}</TableCell>
+                          <TableCell className="font-medium">
+                            {pengurus.jabatan}
+                          </TableCell>
                           <TableCell>{pengurus.nama_lengkap}</TableCell>
                           <TableCell>
                             {pengurus.jenis_kelamin === "Laki-laki" ? "L" : "P"}
@@ -458,14 +531,16 @@ const DetailPengajuan = () => {
                 <CardHeader>
                   <CardTitle>Aksi Verifikasi</CardTitle>
                   <CardDescription>
-                    {userRole === 'okk' && "Verifikasi dokumen pengajuan"}
-                    {userRole === 'sekjend' && "Setujui atau tolak pengajuan"}
-                    {userRole === 'ketum' && "Persetujuan akhir pengajuan"}
+                    {userRole === "okk" && "Verifikasi dokumen pengajuan"}
+                    {userRole === "sekjend" && "Setujui atau tolak pengajuan"}
+                    {userRole === "ketum" && "Persetujuan akhir pengajuan"}
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="catatan">Catatan Revisi (Jika Ditolak)</Label>
+                    <Label htmlFor="catatan">
+                      Catatan Revisi (Jika Ditolak)
+                    </Label>
                     <Textarea
                       id="catatan"
                       placeholder="Masukkan alasan penolakan..."
@@ -519,13 +594,15 @@ const DetailPengajuan = () => {
               </Card>
             )}
 
-            {pengajuan.catatan_revisi && (
+            {pengajuan?.catatan_revisi && (
               <Card className="border-destructive">
                 <CardHeader>
-                  <CardTitle className="text-destructive">Catatan Revisi</CardTitle>
+                  <CardTitle className="text-destructive">
+                    Catatan Revisi
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-sm">{pengajuan.catatan_revisi}</p>
+                  <p className="text-sm">{pengajuan?.catatan_revisi}</p>
                 </CardContent>
               </Card>
             )}

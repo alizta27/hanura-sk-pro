@@ -1,11 +1,30 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { LogOut, Search, Filter, Eye } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -55,7 +74,9 @@ const STATUS_LABELS: Record<PengajuanStatus, string> = {
 
 const DashboardAdmin = () => {
   const navigate = useNavigate();
-  const [pengajuanList, setPengajuanList] = useState<PengajuanWithProfile[]>([]);
+  const [pengajuanList, setPengajuanList] = useState<PengajuanWithProfile[]>(
+    []
+  );
   const [filteredList, setFilteredList] = useState<PengajuanWithProfile[]>([]);
   const [userRole, setUserRole] = useState<AppRole | null>(null);
   const [loading, setLoading] = useState(true);
@@ -79,7 +100,9 @@ const DashboardAdmin = () => {
 
   const loadUserRole = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) {
         toast.error("User tidak terautentikasi");
         navigate("/auth");
@@ -87,14 +110,14 @@ const DashboardAdmin = () => {
       }
 
       const { data, error } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', user.id)
+        .from("profiles")
+        .select("role")
+        .eq("id", user.id)
         .single();
 
       if (error) throw error;
 
-      if (data && ['okk', 'sekjend', 'ketum'].includes(data.role)) {
+      if (data && ["okk", "sekjend", "ketum"].includes(data.role)) {
         setUserRole(data.role as AppRole);
       } else {
         toast.error("Akses ditolak. Anda bukan admin.");
@@ -109,8 +132,9 @@ const DashboardAdmin = () => {
   const loadPengajuan = async () => {
     try {
       const { data, error } = await supabase
-        .from('pengajuan_sk')
-        .select(`
+        .from("pengajuan_sk")
+        .select(
+          `
           id,
           status,
           tanggal_musda,
@@ -120,8 +144,9 @@ const DashboardAdmin = () => {
             full_name,
             provinsi
           )
-        `)
-        .order('created_at', { ascending: false });
+        `
+        )
+        .order("created_at", { ascending: false });
 
       if (error) throw error;
 
@@ -140,8 +165,12 @@ const DashboardAdmin = () => {
     if (searchQuery) {
       filtered = filtered.filter(
         (p) =>
-          p.profiles?.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          p.profiles?.provinsi?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          p.profiles?.full_name
+            .toLowerCase()
+            .includes(searchQuery.toLowerCase()) ||
+          p.profiles?.provinsi
+            ?.toLowerCase()
+            .includes(searchQuery.toLowerCase()) ||
           p.lokasi_musda.toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
@@ -151,7 +180,9 @@ const DashboardAdmin = () => {
     }
 
     if (filterProvinsi !== "all") {
-      filtered = filtered.filter((p) => p.profiles?.provinsi === filterProvinsi);
+      filtered = filtered.filter(
+        (p) => p.profiles?.provinsi === filterProvinsi
+      );
     }
 
     setFilteredList(filtered);
@@ -179,7 +210,9 @@ const DashboardAdmin = () => {
     total: pengajuanList.length,
     menunggu: pengajuanList.filter((p) => p.status === "diupload").length,
     diproses: pengajuanList.filter((p) =>
-      ["diverifikasi_okk", "disetujui_sekjend", "disetujui_ketum"].includes(p.status)
+      ["diverifikasi_okk", "disetujui_sekjend", "disetujui_ketum"].includes(
+        p.status
+      )
     ).length,
     selesai: pengajuanList.filter((p) => p.status === "sk_terbit").length,
   };
@@ -203,7 +236,9 @@ const DashboardAdmin = () => {
             <div className="flex items-center gap-4">
               <img src={hanuraLogo} alt="HANURA" className="h-12 w-auto" />
               <div>
-                <h1 className="text-xl font-bold text-foreground">HANURA SK Pro</h1>
+                <h1 className="text-xl font-bold text-foreground">
+                  H-Gate050: MUSDA System
+                </h1>
                 <p className="text-sm text-muted-foreground">
                   Dashboard {userRole?.toUpperCase()}
                 </p>
@@ -229,21 +264,27 @@ const DashboardAdmin = () => {
           <Card className="shadow-medium">
             <CardHeader className="pb-3">
               <CardDescription>Menunggu Verifikasi</CardDescription>
-              <CardTitle className="text-3xl text-blue-500">{stats.menunggu}</CardTitle>
+              <CardTitle className="text-3xl text-blue-500">
+                {stats.menunggu}
+              </CardTitle>
             </CardHeader>
           </Card>
 
           <Card className="shadow-medium">
             <CardHeader className="pb-3">
               <CardDescription>Sedang Diproses</CardDescription>
-              <CardTitle className="text-3xl text-yellow-500">{stats.diproses}</CardTitle>
+              <CardTitle className="text-3xl text-yellow-500">
+                {stats.diproses}
+              </CardTitle>
             </CardHeader>
           </Card>
 
           <Card className="shadow-medium">
             <CardHeader className="pb-3">
               <CardDescription>SK Terbit</CardDescription>
-              <CardTitle className="text-3xl text-success">{stats.selesai}</CardTitle>
+              <CardTitle className="text-3xl text-success">
+                {stats.selesai}
+              </CardTitle>
             </CardHeader>
           </Card>
         </div>
@@ -278,14 +319,23 @@ const DashboardAdmin = () => {
                   <SelectContent>
                     <SelectItem value="all">Semua Status</SelectItem>
                     <SelectItem value="diupload">Diupload</SelectItem>
-                    <SelectItem value="diverifikasi_okk">Diverifikasi OKK</SelectItem>
-                    <SelectItem value="disetujui_sekjend">Disetujui Sekjend</SelectItem>
-                    <SelectItem value="disetujui_ketum">Disetujui Ketum</SelectItem>
+                    <SelectItem value="diverifikasi_okk">
+                      Diverifikasi OKK
+                    </SelectItem>
+                    <SelectItem value="disetujui_sekjend">
+                      Disetujui Sekjend
+                    </SelectItem>
+                    <SelectItem value="disetujui_ketum">
+                      Disetujui Ketum
+                    </SelectItem>
                     <SelectItem value="sk_terbit">SK Terbit</SelectItem>
                   </SelectContent>
                 </Select>
 
-                <Select value={filterProvinsi} onValueChange={setFilterProvinsi}>
+                <Select
+                  value={filterProvinsi}
+                  onValueChange={setFilterProvinsi}
+                >
                   <SelectTrigger className="w-[180px]">
                     <Filter className="mr-2 h-4 w-4" />
                     <SelectValue placeholder="Provinsi" />
@@ -304,7 +354,9 @@ const DashboardAdmin = () => {
 
             {filteredList.length === 0 ? (
               <div className="text-center py-12">
-                <p className="text-muted-foreground">Tidak ada data pengajuan</p>
+                <p className="text-muted-foreground">
+                  Tidak ada data pengajuan
+                </p>
               </div>
             ) : (
               <Table>
@@ -325,17 +377,27 @@ const DashboardAdmin = () => {
                       <TableCell className="font-medium">
                         {pengajuan.profiles?.full_name || "-"}
                       </TableCell>
-                      <TableCell>{pengajuan.profiles?.provinsi || "-"}</TableCell>
                       <TableCell>
-                        {format(new Date(pengajuan.tanggal_musda), "dd MMM yyyy", {
-                          locale: id,
-                        })}
+                        {pengajuan.profiles?.provinsi || "-"}
+                      </TableCell>
+                      <TableCell>
+                        {format(
+                          new Date(pengajuan.tanggal_musda),
+                          "dd MMM yyyy",
+                          {
+                            locale: id,
+                          }
+                        )}
                       </TableCell>
                       <TableCell className="max-w-[200px] truncate">
                         {pengajuan.lokasi_musda}
                       </TableCell>
                       <TableCell>
-                        <Badge className={`${STATUS_COLORS[pengajuan.status]} text-white`}>
+                        <Badge
+                          className={`${
+                            STATUS_COLORS[pengajuan.status]
+                          } text-white`}
+                        >
                           {STATUS_LABELS[pengajuan.status]}
                         </Badge>
                       </TableCell>

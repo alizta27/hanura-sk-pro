@@ -1,13 +1,28 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Calendar as CalendarIcon, Upload, ArrowLeft, ArrowRight } from "lucide-react";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Calendar as CalendarIcon,
+  Upload,
+  ArrowLeft,
+  ArrowRight,
+} from "lucide-react";
 import { format } from "date-fns";
 import { id } from "date-fns/locale";
 import { cn } from "@/lib/utils";
@@ -48,32 +63,32 @@ const UploadLaporanMusda = () => {
     setUploading(true);
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) {
         toast.error("User tidak terautentikasi");
         return;
       }
 
-      const fileExt = file.name.split('.').pop();
+      const fileExt = file.name.split(".").pop();
       const fileName = `${user.id}/${Date.now()}.${fileExt}`;
 
       const { error: uploadError } = await supabase.storage
-        .from('laporan-musda')
+        .from("laporan-musda")
         .upload(fileName, file);
 
       if (uploadError) {
         throw uploadError;
       }
 
-      const { error: dbError } = await supabase
-        .from('pengajuan_sk')
-        .insert({
-          dpd_id: user.id,
-          tanggal_musda: format(date, "yyyy-MM-dd"),
-          lokasi_musda: lokasi,
-          file_laporan_musda: fileName,
-          status: 'draft'
-        });
+      const { error: dbError } = await supabase.from("pengajuan_sk").insert({
+        dpd_id: user.id,
+        tanggal_musda: format(date, "yyyy-MM-dd"),
+        lokasi_musda: lokasi,
+        file_laporan_musda: fileName,
+        status: "draft",
+      });
 
       if (dbError) {
         throw dbError;
@@ -96,8 +111,12 @@ const UploadLaporanMusda = () => {
           <div className="flex items-center gap-4">
             <img src={hanuraLogo} alt="HANURA" className="h-12 w-auto" />
             <div>
-              <h1 className="text-xl font-bold text-foreground">HANURA SK Pro</h1>
-              <p className="text-sm text-muted-foreground">Upload Laporan MUSDA</p>
+              <h1 className="text-xl font-bold text-foreground">
+                H-Gate050: MUSDA System
+              </h1>
+              <p className="text-sm text-muted-foreground">
+                Upload Laporan MUSDA
+              </p>
             </div>
           </div>
         </div>
@@ -144,7 +163,9 @@ const UploadLaporanMusda = () => {
                       )}
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
-                      {date ? format(date, "PPP", { locale: id }) : "Pilih tanggal"}
+                      {date
+                        ? format(date, "PPP", { locale: id })
+                        : "Pilih tanggal"}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0" align="start">
@@ -200,11 +221,7 @@ const UploadLaporanMusda = () => {
                 >
                   Simpan Draft
                 </Button>
-                <Button
-                  type="submit"
-                  disabled={uploading}
-                  className="flex-1"
-                >
+                <Button type="submit" disabled={uploading} className="flex-1">
                   {uploading ? (
                     "Mengupload..."
                   ) : (

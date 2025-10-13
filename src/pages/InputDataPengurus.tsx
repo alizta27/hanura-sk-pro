@@ -1,13 +1,39 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ArrowLeft, ArrowRight, Plus, Trash2, Edit2, Upload } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  ArrowLeft,
+  ArrowRight,
+  Plus,
+  Trash2,
+  Edit2,
+  Upload,
+} from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import hanuraLogo from "@/assets/hanura-logo.jpg";
@@ -47,22 +73,24 @@ const InputDataPengurus = () => {
   const [showCustomInput, setShowCustomInput] = useState(false);
   const [pengajuanId, setPengajuanId] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
-
+  console.log({ pengajuanId });
   useEffect(() => {
     loadPengajuan();
   }, []);
 
   const loadPengajuan = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) return;
 
       const { data, error } = await supabase
-        .from('pengajuan_sk')
-        .select('*')
-        .eq('dpd_id', user.id)
-        .eq('status', 'draft')
-        .order('created_at', { ascending: false })
+        .from("pengajuan_sk")
+        .select("*")
+        .eq("dpd_id", user.id)
+        .eq("status", "draft")
+        .order("created_at", { ascending: false })
         .limit(1)
         .maybeSingle();
 
@@ -72,7 +100,9 @@ const InputDataPengurus = () => {
         setPengajuanId(data.id);
         loadPengurus(data.id);
       } else {
-        toast.error("Tidak ada pengajuan draft. Silakan upload laporan MUSDA terlebih dahulu");
+        toast.error(
+          "Tidak ada pengajuan draft. Silakan upload laporan MUSDA terlebih dahulu"
+        );
         navigate("/upload-laporan");
       }
     } catch (error) {
@@ -84,10 +114,10 @@ const InputDataPengurus = () => {
   const loadPengurus = async (id: string) => {
     try {
       const { data, error } = await supabase
-        .from('pengurus')
-        .select('*')
-        .eq('pengajuan_id', id)
-        .order('urutan', { ascending: true });
+        .from("pengurus")
+        .select("*")
+        .eq("pengajuan_id", id)
+        .order("urutan", { ascending: true });
 
       if (error) throw error;
 
@@ -117,8 +147,12 @@ const InputDataPengurus = () => {
   };
 
   const handleAddPengurus = () => {
-    if (!currentPengurus.jabatan || !currentPengurus.nama_lengkap ||
-        !currentPengurus.jenis_kelamin || !currentPengurus.file_ktp) {
+    if (
+      !currentPengurus.jabatan ||
+      !currentPengurus.nama_lengkap ||
+      !currentPengurus.jenis_kelamin ||
+      !currentPengurus.file_ktp
+    ) {
       toast.error("Semua field wajib diisi");
       return;
     }
@@ -129,7 +163,10 @@ const InputDataPengurus = () => {
       setPengurusList(updated);
       setEditingIndex(null);
     } else {
-      setPengurusList([...pengurusList, { ...currentPengurus, urutan: pengurusList.length }]);
+      setPengurusList([
+        ...pengurusList,
+        { ...currentPengurus, urutan: pengurusList.length },
+      ]);
     }
 
     setCurrentPengurus({
@@ -153,7 +190,9 @@ const InputDataPengurus = () => {
   };
 
   const validatePerempuan = () => {
-    const perempuanCount = pengurusList.filter(p => p.jenis_kelamin === "Perempuan").length;
+    const perempuanCount = pengurusList.filter(
+      (p) => p.jenis_kelamin === "Perempuan"
+    ).length;
     const percentage = (perempuanCount / pengurusList.length) * 100;
     return percentage >= 30;
   };
@@ -177,18 +216,23 @@ const InputDataPengurus = () => {
     setUploading(true);
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) throw new Error("User tidak terautentikasi");
 
       for (const pengurus of pengurusList) {
         let ktpUrl = pengurus.file_ktp;
 
         if (pengurus.file_ktp instanceof File) {
-          const fileExt = pengurus.file_ktp.name.split('.').pop();
-          const fileName = `${user.id}/${Date.now()}-${pengurus.jabatan.replace(/\s+/g, '-')}.${fileExt}`;
+          const fileExt = pengurus.file_ktp.name.split(".").pop();
+          const fileName = `${user.id}/${Date.now()}-${pengurus.jabatan.replace(
+            /\s+/g,
+            "-"
+          )}.${fileExt}`;
 
           const { error: uploadError } = await supabase.storage
-            .from('ktp-pengurus')
+            .from("ktp-pengurus")
             .upload(fileName, pengurus.file_ktp);
 
           if (uploadError) throw uploadError;
@@ -198,7 +242,7 @@ const InputDataPengurus = () => {
 
         if (pengurus.id) {
           const { error } = await supabase
-            .from('pengurus')
+            .from("pengurus")
             .update({
               jabatan: pengurus.jabatan,
               nama_lengkap: pengurus.nama_lengkap,
@@ -206,29 +250,27 @@ const InputDataPengurus = () => {
               file_ktp: ktpUrl,
               urutan: pengurus.urutan,
             })
-            .eq('id', pengurus.id);
+            .eq("id", pengurus.id);
 
           if (error) throw error;
         } else {
-          const { error } = await supabase
-            .from('pengurus')
-            .insert({
-              pengajuan_id: pengajuanId,
-              jabatan: pengurus.jabatan,
-              nama_lengkap: pengurus.nama_lengkap,
-              jenis_kelamin: pengurus.jenis_kelamin,
-              file_ktp: ktpUrl as string,
-              urutan: pengurus.urutan,
-            });
+          const { error } = await supabase.from("pengurus").insert({
+            pengajuan_id: pengajuanId,
+            jabatan: pengurus.jabatan,
+            nama_lengkap: pengurus.nama_lengkap,
+            jenis_kelamin: pengurus.jenis_kelamin,
+            file_ktp: ktpUrl as string,
+            urutan: pengurus.urutan,
+          });
 
           if (error) throw error;
         }
       }
 
       const { error: updateError } = await supabase
-        .from('pengajuan_sk')
-        .update({ status: 'diupload' })
-        .eq('id', pengajuanId);
+        .from("pengajuan_sk")
+        .update({ status: "diupload", dpd_id: user.id })
+        .eq("id", pengajuanId);
 
       if (updateError) throw updateError;
 
@@ -242,9 +284,12 @@ const InputDataPengurus = () => {
     }
   };
 
-  const perempuanPercentage = pengurusList.length > 0
-    ? (pengurusList.filter(p => p.jenis_kelamin === "Perempuan").length / pengurusList.length) * 100
-    : 0;
+  const perempuanPercentage =
+    pengurusList.length > 0
+      ? (pengurusList.filter((p) => p.jenis_kelamin === "Perempuan").length /
+          pengurusList.length) *
+        100
+      : 0;
 
   return (
     <div className="min-h-screen bg-gradient-soft">
@@ -253,8 +298,12 @@ const InputDataPengurus = () => {
           <div className="flex items-center gap-4">
             <img src={hanuraLogo} alt="HANURA" className="h-12 w-auto" />
             <div>
-              <h1 className="text-xl font-bold text-foreground">HANURA SK Pro</h1>
-              <p className="text-sm text-muted-foreground">Input Data Pengurus</p>
+              <h1 className="text-xl font-bold text-foreground">
+                H-Gate050: MUSDA System
+              </h1>
+              <p className="text-sm text-muted-foreground">
+                Input Data Pengurus
+              </p>
             </div>
           </div>
         </div>
@@ -299,7 +348,10 @@ const InputDataPengurus = () => {
                         if (value === "custom") {
                           setShowCustomInput(true);
                         } else {
-                          setCurrentPengurus({ ...currentPengurus, jabatan: value });
+                          setCurrentPengurus({
+                            ...currentPengurus,
+                            jabatan: value,
+                          });
                         }
                       }}
                     >
@@ -312,7 +364,9 @@ const InputDataPengurus = () => {
                             {jab}
                           </SelectItem>
                         ))}
-                        <SelectItem value="custom">+ Tambah Jabatan Lainnya</SelectItem>
+                        <SelectItem value="custom">
+                          + Tambah Jabatan Lainnya
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -326,7 +380,10 @@ const InputDataPengurus = () => {
                     <Button
                       onClick={() => {
                         if (customJabatan) {
-                          setCurrentPengurus({ ...currentPengurus, jabatan: customJabatan });
+                          setCurrentPengurus({
+                            ...currentPengurus,
+                            jabatan: customJabatan,
+                          });
                           setShowCustomInput(false);
                         }
                       }}
@@ -344,7 +401,10 @@ const InputDataPengurus = () => {
                   placeholder="Masukkan nama lengkap"
                   value={currentPengurus.nama_lengkap}
                   onChange={(e) =>
-                    setCurrentPengurus({ ...currentPengurus, nama_lengkap: e.target.value })
+                    setCurrentPengurus({
+                      ...currentPengurus,
+                      nama_lengkap: e.target.value,
+                    })
                   }
                 />
               </div>
@@ -354,7 +414,10 @@ const InputDataPengurus = () => {
                 <Select
                   value={currentPengurus.jenis_kelamin}
                   onValueChange={(value) =>
-                    setCurrentPengurus({ ...currentPengurus, jenis_kelamin: value })
+                    setCurrentPengurus({
+                      ...currentPengurus,
+                      jenis_kelamin: value,
+                    })
                   }
                 >
                   <SelectTrigger>
@@ -403,7 +466,13 @@ const InputDataPengurus = () => {
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
                     <span>Persentase Perempuan</span>
-                    <span className={perempuanPercentage >= 30 ? "text-success" : "text-destructive"}>
+                    <span
+                      className={
+                        perempuanPercentage >= 30
+                          ? "text-success"
+                          : "text-destructive"
+                      }
+                    >
                       {perempuanPercentage.toFixed(1)}%
                     </span>
                   </div>
@@ -437,9 +506,13 @@ const InputDataPengurus = () => {
                     <TableBody>
                       {pengurusList.map((pengurus, index) => (
                         <TableRow key={index}>
-                          <TableCell className="font-medium">{pengurus.jabatan}</TableCell>
+                          <TableCell className="font-medium">
+                            {pengurus.jabatan}
+                          </TableCell>
                           <TableCell>{pengurus.nama_lengkap}</TableCell>
-                          <TableCell>{pengurus.jenis_kelamin === "Laki-laki" ? "L" : "P"}</TableCell>
+                          <TableCell>
+                            {pengurus.jenis_kelamin === "Laki-laki" ? "L" : "P"}
+                          </TableCell>
                           <TableCell>
                             <div className="flex gap-2">
                               <Button
