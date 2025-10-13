@@ -14,16 +14,209 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      pengajuan_sk: {
+        Row: {
+          approved_by_ketum: string | null
+          approved_by_sekjend: string | null
+          approved_ketum_at: string | null
+          approved_sekjend_at: string | null
+          catatan_revisi: string | null
+          created_at: string
+          dpd_id: string
+          file_laporan_musda: string | null
+          id: string
+          lokasi_musda: string
+          sk_terbit_at: string | null
+          status: Database["public"]["Enums"]["pengajuan_status"]
+          tanggal_musda: string
+          updated_at: string
+          verified_by_okk: string | null
+          verified_okk_at: string | null
+        }
+        Insert: {
+          approved_by_ketum?: string | null
+          approved_by_sekjend?: string | null
+          approved_ketum_at?: string | null
+          approved_sekjend_at?: string | null
+          catatan_revisi?: string | null
+          created_at?: string
+          dpd_id: string
+          file_laporan_musda?: string | null
+          id?: string
+          lokasi_musda: string
+          sk_terbit_at?: string | null
+          status?: Database["public"]["Enums"]["pengajuan_status"]
+          tanggal_musda: string
+          updated_at?: string
+          verified_by_okk?: string | null
+          verified_okk_at?: string | null
+        }
+        Update: {
+          approved_by_ketum?: string | null
+          approved_by_sekjend?: string | null
+          approved_ketum_at?: string | null
+          approved_sekjend_at?: string | null
+          catatan_revisi?: string | null
+          created_at?: string
+          dpd_id?: string
+          file_laporan_musda?: string | null
+          id?: string
+          lokasi_musda?: string
+          sk_terbit_at?: string | null
+          status?: Database["public"]["Enums"]["pengajuan_status"]
+          tanggal_musda?: string
+          updated_at?: string
+          verified_by_okk?: string | null
+          verified_okk_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pengajuan_sk_approved_by_ketum_fkey"
+            columns: ["approved_by_ketum"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pengajuan_sk_approved_by_sekjend_fkey"
+            columns: ["approved_by_sekjend"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pengajuan_sk_dpd_id_fkey"
+            columns: ["dpd_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pengajuan_sk_verified_by_okk_fkey"
+            columns: ["verified_by_okk"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pengurus: {
+        Row: {
+          created_at: string
+          file_ktp: string
+          id: string
+          jabatan: string
+          jenis_kelamin: string
+          nama_lengkap: string
+          pengajuan_id: string
+          updated_at: string
+          urutan: number
+        }
+        Insert: {
+          created_at?: string
+          file_ktp: string
+          id?: string
+          jabatan: string
+          jenis_kelamin: string
+          nama_lengkap: string
+          pengajuan_id: string
+          updated_at?: string
+          urutan?: number
+        }
+        Update: {
+          created_at?: string
+          file_ktp?: string
+          id?: string
+          jabatan?: string
+          jenis_kelamin?: string
+          nama_lengkap?: string
+          pengajuan_id?: string
+          updated_at?: string
+          urutan?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pengurus_pengajuan_id_fkey"
+            columns: ["pengajuan_id"]
+            isOneToOne: false
+            referencedRelation: "pengajuan_sk"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          full_name: string
+          id: string
+          provinsi: string | null
+          role: Database["public"]["Enums"]["app_role"]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          full_name: string
+          id: string
+          provinsi?: string | null
+          role?: Database["public"]["Enums"]["app_role"]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          full_name?: string
+          id?: string
+          provinsi?: string | null
+          role?: Database["public"]["Enums"]["app_role"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "dpd" | "okk" | "sekjend" | "ketum"
+      pengajuan_status:
+        | "draft"
+        | "diupload"
+        | "diverifikasi_okk"
+        | "ditolak_okk"
+        | "disetujui_sekjend"
+        | "ditolak_sekjend"
+        | "disetujui_ketum"
+        | "ditolak_ketum"
+        | "sk_terbit"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +343,19 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["dpd", "okk", "sekjend", "ketum"],
+      pengajuan_status: [
+        "draft",
+        "diupload",
+        "diverifikasi_okk",
+        "ditolak_okk",
+        "disetujui_sekjend",
+        "ditolak_sekjend",
+        "disetujui_ketum",
+        "ditolak_ketum",
+        "sk_terbit",
+      ],
+    },
   },
 } as const
