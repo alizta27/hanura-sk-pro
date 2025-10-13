@@ -19,6 +19,7 @@ const DashboardDPD = () => {
       description: "Upload file PDF laporan hasil MUSDA dan informasi pelaksanaan",
       icon: FileText,
       completed: false,
+      route: "/upload-laporan",
     },
     {
       number: 2,
@@ -26,6 +27,7 @@ const DashboardDPD = () => {
       description: "Isi data lengkap pengurus DPD beserta dokumen pendukung",
       icon: Users,
       completed: false,
+      route: "/input-pengurus",
     },
     {
       number: 3,
@@ -33,6 +35,7 @@ const DashboardDPD = () => {
       description: "Pantau status persetujuan SK dari OKK, Sekjend, hingga Ketum",
       icon: CheckCircle2,
       completed: false,
+      route: "/progress-sk",
     },
   ];
 
@@ -132,9 +135,9 @@ const DashboardDPD = () => {
                   <Button
                     className="mt-4 w-full"
                     variant={isActive ? "default" : "outline"}
-                    disabled={!isActive}
+                    onClick={() => navigate(step.route)}
                   >
-                    {isCompleted ? "Lihat Detail" : isActive ? "Mulai" : "Belum Aktif"}
+                    {isCompleted ? "Lihat Detail" : isActive ? "Mulai" : "Mulai"}
                   </Button>
                 </CardContent>
               </Card>

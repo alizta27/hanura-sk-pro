@@ -1,4 +1,81 @@
-# Welcome to your Lovable project
+# HANURA SK Pro
+
+Sistem Pengajuan SK dan Laporan MUSDA untuk Partai Hati Nurani Rakyat (HANURA).
+
+## Deskripsi
+
+HANURA SK Pro adalah aplikasi web untuk mengelola pengajuan Surat Keputusan (SK) Kepengurusan DPD dan laporan hasil Musyawarah Daerah (MUSDA). Aplikasi ini memudahkan proses pengajuan, verifikasi, dan persetujuan SK dari DPD hingga Ketua Umum.
+
+## Fitur Utama
+
+### Untuk DPD
+- **Upload Laporan MUSDA** - Upload file PDF laporan hasil MUSDA dengan informasi tanggal dan lokasi
+- **Input Data Pengurus** - Input data lengkap pengurus DPD dengan validasi keterwakilan perempuan minimal 30%
+- **Tracking Progress SK** - Pantau status persetujuan SK secara real-time
+
+### Untuk Admin (OKK, Sekjend, Ketum)
+- **Dashboard Admin** - Lihat semua pengajuan dari seluruh DPD
+- **Verifikasi Dokumen** - Verifikasi dan review dokumen pengajuan
+- **Approval System** - Setujui atau tolak pengajuan dengan catatan revisi
+- **PDF Viewer** - Lihat dokumen langsung tanpa download
+
+## Struktur Project
+
+```
+src/
+├── pages/
+│   ├── Auth.tsx                    # Halaman login/register
+│   ├── Index.tsx                   # Landing page
+│   ├── DashboardDPD.tsx           # Dashboard untuk DPD
+│   ├── UploadLaporanMusda.tsx     # Form upload laporan MUSDA
+│   ├── InputDataPengurus.tsx      # Form input data pengurus
+│   ├── ProgressPengajuanSK.tsx    # Halaman tracking progress
+│   ├── DashboardAdmin.tsx         # Dashboard untuk Admin
+│   └── DetailPengajuan.tsx        # Detail & verifikasi pengajuan
+├── components/ui/                  # Komponen UI dari shadcn
+├── integrations/supabase/          # Konfigurasi Supabase
+└── lib/
+    ├── utils.ts                    # Utility functions
+    └── storage.ts                  # Storage helper functions
+
+supabase/
+└── migrations/                     # Database migrations
+```
+
+## Database Schema
+
+### Tables
+- `profiles` - Data user dan role
+- `user_roles` - Manajemen role user
+- `pengajuan_sk` - Data pengajuan SK dari DPD
+- `pengurus` - Data pengurus DPD
+
+### Storage Buckets
+- `laporan-musda` - File PDF laporan MUSDA (max 10MB)
+- `ktp-pengurus` - File KTP pengurus (max 5MB, JPG/PNG/PDF)
+
+## Role & Permission
+
+### DPD
+- Upload laporan MUSDA
+- Input data pengurus
+- Lihat progress pengajuan sendiri
+- Revisi pengajuan yang ditolak
+
+### OKK
+- Verifikasi dokumen pengajuan
+- Setujui/tolak pengajuan
+- Beri catatan revisi
+
+### Sekjend
+- Approve pengajuan yang sudah diverifikasi OKK
+- Setujui/tolak pengajuan
+- Beri catatan revisi
+
+### Ketum
+- Final approval pengajuan
+- Terbitkan SK
+- Setujui/tolak pengajuan
 
 ## Project info
 

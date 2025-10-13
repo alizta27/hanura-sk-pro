@@ -9,11 +9,22 @@ const Index = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Check if user is already logged in
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
-        navigate("/dashboard");
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', session.user.id)
+          .single();
+
+        if (profile) {
+          if (['okk', 'sekjend', 'ketum'].includes(profile.role)) {
+            navigate("/dashboard-admin");
+          } else {
+            navigate("/dashboard");
+          }
+        }
       }
     };
     checkSession();
