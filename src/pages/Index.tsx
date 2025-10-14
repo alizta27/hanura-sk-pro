@@ -87,17 +87,17 @@ const Index = () => {
               className="text-lg px-8 shadow-large hover:shadow-xl transition-all"
               onClick={() => navigate("/auth")}
             >
-              Mulai Sekarang
+              Login
               <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
-            <Button
+            {/* <Button
               size="lg"
               variant="outline"
               className="text-lg px-8"
               onClick={() => navigate("/auth")}
             >
               Login
-            </Button>
+            </Button> */}
           </div>
         </div>
 

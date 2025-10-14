@@ -12,6 +12,7 @@ import ProgressPengajuanSK from "./pages/ProgressPengajuanSK";
 import DashboardAdmin from "./pages/DashboardAdmin";
 import DetailPengajuan from "./pages/DetailPengajuan";
 import NotFound from "./pages/NotFound";
+import AuthAdmin from "./pages/AuthAdmin";
 
 const queryClient = new QueryClient();
 
@@ -24,6 +25,7 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/auth" element={<Auth />} />
+          <Route path="/auth-admin" element={<AuthAdmin />} />
           <Route path="/dashboard" element={<DashboardDPD />} />
           <Route path="/upload-laporan" element={<UploadLaporanMusda />} />
           <Route path="/input-pengurus" element={<InputDataPengurus />} />

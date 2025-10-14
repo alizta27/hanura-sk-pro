@@ -437,7 +437,7 @@ const DetailPengajuan = () => {
                       Laporan MUSDA
                     </Label>
                     <div className="flex gap-2 mt-2">
-                      <Button
+                      {/* <Button
                         size="sm"
                         variant="outline"
                         onClick={() =>
@@ -446,7 +446,7 @@ const DetailPengajuan = () => {
                       >
                         <Eye className="mr-2 h-4 w-4" />
                         Lihat PDF
-                      </Button>
+                      </Button> */}
                       <Button
                         size="sm"
                         variant="outline"
@@ -458,8 +458,8 @@ const DetailPengajuan = () => {
                           if (signedUrl) window.open(signedUrl, "_blank");
                         }}
                       >
-                        <Download className="mr-2 h-4 w-4" />
-                        Download
+                        <Eye className="mr-2 h-4 w-4" />
+                        Lihat PDF
                       </Button>
                     </div>
                   </div>
@@ -612,12 +612,7 @@ const DetailPengajuan = () => {
 
       <Dialog open={showPdfDialog} onOpenChange={setShowPdfDialog}>
         <DialogContent className="max-w-4xl h-[80vh]">
-          <DialogHeader>
-            <DialogTitle>Preview Dokumen</DialogTitle>
-            <DialogDescription>
-              Dokumen PDF - Klik download untuk melihat lebih detail
-            </DialogDescription>
-          </DialogHeader>
+          <DialogTitle>Preview</DialogTitle>
           <div className="flex-1 overflow-hidden">
             <iframe
               src={pdfUrl}
