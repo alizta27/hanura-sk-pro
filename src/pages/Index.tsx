@@ -18,7 +18,7 @@ const Index = () => {
           .from("profiles")
           .select("role")
           .eq("id", session.user.id)
-          .single();
+          .maybeSingle();
 
         if (profile) {
           if (["okk", "sekjend", "ketum"].includes(profile.role)) {

@@ -113,7 +113,7 @@ const DashboardAdmin = () => {
         .from("profiles")
         .select("role")
         .eq("id", user.id)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
 

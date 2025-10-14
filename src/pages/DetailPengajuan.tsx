@@ -106,7 +106,7 @@ const DetailPengajuan = () => {
         .from("profiles")
         .select("role")
         .eq("id", user.id)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
 
@@ -142,11 +142,16 @@ const DetailPengajuan = () => {
         `
         )
         .eq("id", id)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
 
-      setPengajuan(data as PengajuanDetail);
+      if (data) {
+        setPengajuan(data as PengajuanDetail);
+      } else {
+        toast.error("Pengajuan tidak ditemukan");
+        navigate("/dashboard-admin");
+      }
     } catch (error) {
       console.error("Error loading pengajuan:", error);
       toast.error("Gagal memuat data pengajuan");

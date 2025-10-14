@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Card,
   CardContent,
@@ -13,10 +13,22 @@ import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import hanuraLogo from "@/assets/hanura-logo.jpg";
+import { checkAuth } from "@/lib/auth";
 
 const DashboardDPD = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const verifyAuth = async () => {
+      const isAuthenticated = await checkAuth();
+      if (!isAuthenticated) {
+        toast.error("Silakan login terlebih dahulu");
+        navigate("/auth");
+      }
+    };
+    verifyAuth();
+  }, [navigate]);
 
   const steps = [
     {

@@ -24,7 +24,6 @@ const Auth = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Check if user is already logged in
     const checkSession = async () => {
       const {
         data: { session },
@@ -35,13 +34,14 @@ const Auth = () => {
     };
     checkSession();
 
-    // Listen for auth changes
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === "SIGNED_IN" && session) {
-        navigate("/dashboard");
-      }
+      (async () => {
+        if (event === "SIGNED_IN" && session) {
+          navigate("/dashboard");
+        }
+      })();
     });
 
     return () => subscription.unsubscribe();
@@ -77,8 +77,8 @@ const Auth = () => {
 
         if (error) throw error;
 
-        toast.success("Registrasi berhasil! Silakan login.");
-        setIsLogin(true);
+        toast.success("Registrasi berhasil! Anda akan diarahkan ke dashboard.");
+        navigate("/dashboard");
       }
     } catch (error: any) {
       toast.error(error.message || "Terjadi kesalahan");

@@ -13,6 +13,13 @@ import {
 } from "@/components/ui/card";
 import { toast } from "sonner";
 import hanuraLogo from "@/assets/hanura-logo.jpg";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const AuthAdmin = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -25,7 +32,6 @@ const AuthAdmin = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Check if user is already logged in
     const checkSession = async () => {
       const {
         data: { session },
@@ -36,13 +42,14 @@ const AuthAdmin = () => {
     };
     checkSession();
 
-    // Listen for auth changes
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === "SIGNED_IN" && session) {
-        navigate("/dashboard-admin");
-      }
+      (async () => {
+        if (event === "SIGNED_IN" && session) {
+          navigate("/dashboard-admin");
+        }
+      })();
     });
 
     return () => subscription.unsubscribe();
@@ -78,8 +85,8 @@ const AuthAdmin = () => {
 
         if (error) throw error;
 
-        toast.success("Registrasi berhasil! Silakan login.");
-        setIsLogin(true);
+        toast.success("Registrasi berhasil! Anda akan diarahkan ke dashboard.");
+        navigate("/dashboard-admin");
       }
     } catch (error: any) {
       toast.error(error.message || "Terjadi kesalahan");
@@ -129,12 +136,16 @@ const AuthAdmin = () => {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="role">Role</Label>
-                  <Input
-                    id="role"
-                    placeholder="Masukkan role"
-                    value={role}
-                    onChange={(e) => setRole(e.target.value)}
-                  />
+                  <Select value={role} onValueChange={setRole} required>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Pilih role" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="okk">OKK</SelectItem>
+                      <SelectItem value="sekjend">Sekretaris Jenderal</SelectItem>
+                      <SelectItem value="ketum">Ketua Umum</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </>
             )}
