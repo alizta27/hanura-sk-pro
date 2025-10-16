@@ -8,74 +8,40 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  ArrowLeft,
-  ArrowRight,
-  Plus,
-  Trash2,
-  Edit2,
-  Upload,
-} from "lucide-react";
+import { ArrowLeft, ArrowRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import hanuraLogo from "@/assets/hanura-logo.jpg";
-
-interface Pengurus {
-  id?: string;
-  jabatan: string;
-  nama_lengkap: string;
-  jenis_kelamin: string;
-  file_ktp: File | string | null;
-  urutan: number;
-}
-
-const DEFAULT_JABATAN = [
-  "Ketua",
-  "Sekretaris",
-  "Bendahara",
-  "Wakil Ketua Umum Bidang Organisasi",
-  "Wakil Ketua Umum Bidang Hukum",
-  "Wakil Ketua Umum Bidang Politik",
-  "Wakil Sekretaris Jenderal Bidang OKK",
-  "Wakil Bendahara Umum",
-];
+import { Pengurus, CustomJabatan } from "@/lib/struktur-constants";
+import { FormPengurus } from "@/components/pengurus/FormPengurus";
+import { ListPengurus } from "@/components/pengurus/ListPengurus";
+import { ProgressGender } from "@/components/pengurus/ProgressGender";
+import { CustomJabatanDialog } from "@/components/pengurus/CustomJabatanDialog";
 
 const InputDataPengurus = () => {
   const navigate = useNavigate();
   const [pengurusList, setPengurusList] = useState<Pengurus[]>([]);
+  const [customJabatanList, setCustomJabatanList] = useState<CustomJabatan[]>(
+    []
+  );
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [currentPengurus, setCurrentPengurus] = useState<Pengurus>({
+    jenis_struktur: "",
+    bidang_struktur: "",
     jabatan: "",
     nama_lengkap: "",
     jenis_kelamin: "",
     file_ktp: null,
     urutan: 0,
   });
-  const [customJabatan, setCustomJabatan] = useState("");
-  const [showCustomInput, setShowCustomInput] = useState(false);
   const [pengajuanId, setPengajuanId] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
-  console.log({ pengajuanId });
+  const [customDialogOpen, setCustomDialogOpen] = useState(false);
+
   useEffect(() => {
     loadPengajuan();
+    loadCustomJabatan();
   }, []);
 
   const loadPengajuan = async () => {
@@ -89,7 +55,6 @@ const InputDataPengurus = () => {
         .from("pengajuan_sk")
         .select("*")
         .eq("dpd_id", user.id)
-        // .eq("status", "draft")
         .order("created_at", { ascending: false })
         .limit(1)
         .maybeSingle();
@@ -122,32 +87,80 @@ const InputDataPengurus = () => {
       if (error) throw error;
 
       if (data) {
-        setPengurusList(data);
+        setPengurusList(data as Pengurus[]);
       }
     } catch (error) {
       console.error("Error loading pengurus:", error);
     }
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const selectedFile = e.target.files[0];
-      const validTypes = ["image/jpeg", "image/png", "application/pdf"];
+  const loadCustomJabatan = async () => {
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) return;
 
-      if (!validTypes.includes(selectedFile.type)) {
-        toast.error("File harus berformat JPG, PNG, atau PDF");
+      const { data, error } = await supabase
+        .from("custom_jabatan")
+        .select("*")
+        .eq("dpd_id", user.id)
+        .order("created_at", { ascending: true });
+
+      if (error) throw error;
+
+      if (data) {
+        setCustomJabatanList(data as CustomJabatan[]);
+      }
+    } catch (error) {
+      console.error("Error loading custom jabatan:", error);
+    }
+  };
+
+  const handleAddCustomJabatan = async (
+    jenisStruktur: string,
+    namaJabatan: string
+  ) => {
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const exists = customJabatanList.some(
+        (cj) =>
+          cj.jenis_struktur === jenisStruktur &&
+          cj.nama_jabatan === namaJabatan
+      );
+
+      if (exists) {
+        toast.error("Jabatan ini sudah ada dalam daftar");
         return;
       }
-      if (selectedFile.size > 5 * 1024 * 1024) {
-        toast.error("Ukuran file maksimal 5MB");
-        return;
-      }
-      setCurrentPengurus({ ...currentPengurus, file_ktp: selectedFile });
+
+      const { data, error } = await supabase
+        .from("custom_jabatan")
+        .insert({
+          dpd_id: user.id,
+          jenis_struktur: jenisStruktur,
+          nama_jabatan: namaJabatan,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      setCustomJabatanList([...customJabatanList, data as CustomJabatan]);
+      toast.success("Jabatan custom berhasil ditambahkan");
+    } catch (error) {
+      console.error("Error adding custom jabatan:", error);
+      toast.error("Gagal menambahkan jabatan custom");
     }
   };
 
   const handleAddPengurus = () => {
     if (
+      !currentPengurus.jenis_struktur ||
       !currentPengurus.jabatan ||
       !currentPengurus.nama_lengkap ||
       !currentPengurus.jenis_kelamin ||
@@ -157,36 +170,48 @@ const InputDataPengurus = () => {
       return;
     }
 
+    if (
+      currentPengurus.jenis_struktur === "Biro-Biro" &&
+      !currentPengurus.bidang_struktur
+    ) {
+      toast.error("Pilih biro terlebih dahulu");
+      return;
+    }
+
     if (editingIndex !== null) {
       const updated = [...pengurusList];
       updated[editingIndex] = { ...currentPengurus, urutan: editingIndex };
       setPengurusList(updated);
       setEditingIndex(null);
+      toast.success("Data pengurus berhasil diupdate");
     } else {
       setPengurusList([
         ...pengurusList,
         { ...currentPengurus, urutan: pengurusList.length },
       ]);
+      toast.success("Pengurus berhasil ditambahkan ke daftar");
     }
 
     setCurrentPengurus({
+      jenis_struktur: "",
+      bidang_struktur: "",
       jabatan: "",
       nama_lengkap: "",
       jenis_kelamin: "",
       file_ktp: null,
       urutan: 0,
     });
-    setShowCustomInput(false);
-    setCustomJabatan("");
   };
 
   const handleEdit = (index: number) => {
     setCurrentPengurus(pengurusList[index]);
     setEditingIndex(index);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const handleDelete = (index: number) => {
     setPengurusList(pengurusList.filter((_, i) => i !== index));
+    toast.success("Pengurus berhasil dihapus");
   };
 
   const validatePerempuan = () => {
@@ -221,6 +246,20 @@ const InputDataPengurus = () => {
       } = await supabase.auth.getUser();
       if (!user) throw new Error("User tidak terautentikasi");
 
+      const { data: existingPengurus } = await supabase
+        .from("pengurus")
+        .select("id")
+        .eq("pengajuan_id", pengajuanId);
+
+      if (existingPengurus && existingPengurus.length > 0) {
+        const { error: deleteError } = await supabase
+          .from("pengurus")
+          .delete()
+          .eq("pengajuan_id", pengajuanId);
+
+        if (deleteError) throw deleteError;
+      }
+
       for (const pengurus of pengurusList) {
         let ktpUrl = pengurus.file_ktp;
 
@@ -240,31 +279,18 @@ const InputDataPengurus = () => {
           ktpUrl = fileName;
         }
 
-        if (pengurus.id) {
-          const { error } = await supabase
-            .from("pengurus")
-            .update({
-              jabatan: pengurus.jabatan,
-              nama_lengkap: pengurus.nama_lengkap,
-              jenis_kelamin: pengurus.jenis_kelamin,
-              file_ktp: ktpUrl as string,
-              urutan: pengurus.urutan,
-            })
-            .eq("id", pengurus.id);
+        const { error } = await supabase.from("pengurus").insert({
+          pengajuan_id: pengajuanId,
+          jenis_struktur: pengurus.jenis_struktur,
+          bidang_struktur: pengurus.bidang_struktur || "",
+          jabatan: pengurus.jabatan,
+          nama_lengkap: pengurus.nama_lengkap,
+          jenis_kelamin: pengurus.jenis_kelamin,
+          file_ktp: ktpUrl as string,
+          urutan: pengurus.urutan,
+        });
 
-          if (error) throw error;
-        } else {
-          const { error } = await supabase.from("pengurus").insert({
-            pengajuan_id: pengajuanId,
-            jabatan: pengurus.jabatan,
-            nama_lengkap: pengurus.nama_lengkap,
-            jenis_kelamin: pengurus.jenis_kelamin,
-            file_ktp: ktpUrl as string,
-            urutan: pengurus.urutan,
-          });
-
-          if (error) throw error;
-        }
+        if (error) throw error;
       }
 
       const { error: updateError } = await supabase
@@ -283,13 +309,6 @@ const InputDataPengurus = () => {
       setUploading(false);
     }
   };
-
-  const perempuanPercentage =
-    pengurusList.length > 0
-      ? (pengurusList.filter((p) => p.jenis_kelamin === "Perempuan").length /
-          pengurusList.length) *
-        100
-      : 0;
 
   return (
     <div className="min-h-screen bg-gradient-soft">
@@ -337,205 +356,31 @@ const InputDataPengurus = () => {
                 Isi data lengkap pengurus DPD beserta dokumen KTP
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label>Jabatan</Label>
-                {!showCustomInput ? (
-                  <div className="space-y-2">
-                    <Select
-                      value={currentPengurus.jabatan}
-                      onValueChange={(value) => {
-                        if (value === "custom") {
-                          setShowCustomInput(true);
-                        } else {
-                          setCurrentPengurus({
-                            ...currentPengurus,
-                            jabatan: value,
-                          });
-                        }
-                      }}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Pilih jabatan" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {DEFAULT_JABATAN.map((jab) => (
-                          <SelectItem key={jab} value={jab}>
-                            {jab}
-                          </SelectItem>
-                        ))}
-                        <SelectItem value="custom">
-                          + Tambah Jabatan Lainnya
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                ) : (
-                  <div className="flex gap-2">
-                    <Input
-                      placeholder="Masukkan jabatan"
-                      value={customJabatan}
-                      onChange={(e) => setCustomJabatan(e.target.value)}
-                    />
-                    <Button
-                      onClick={() => {
-                        if (customJabatan) {
-                          setCurrentPengurus({
-                            ...currentPengurus,
-                            jabatan: customJabatan,
-                          });
-                          setShowCustomInput(false);
-                        }
-                      }}
-                    >
-                      OK
-                    </Button>
-                  </div>
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="nama">Nama Lengkap</Label>
-                <Input
-                  id="nama"
-                  placeholder="Masukkan nama lengkap"
-                  value={currentPengurus.nama_lengkap}
-                  onChange={(e) =>
-                    setCurrentPengurus({
-                      ...currentPengurus,
-                      nama_lengkap: e.target.value,
-                    })
-                  }
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label>Jenis Kelamin</Label>
-                <Select
-                  value={currentPengurus.jenis_kelamin}
-                  onValueChange={(value) =>
-                    setCurrentPengurus({
-                      ...currentPengurus,
-                      jenis_kelamin: value,
-                    })
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Pilih jenis kelamin" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Laki-laki">Laki-laki</SelectItem>
-                    <SelectItem value="Perempuan">Perempuan</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="ktp">Upload KTP (JPG/PNG/PDF)</Label>
-                <div className="flex items-center gap-2">
-                  <Input
-                    id="ktp"
-                    type="file"
-                    accept="image/jpeg,image/png,application/pdf"
-                    onChange={handleFileChange}
-                  />
-                  {currentPengurus.file_ktp && (
-                    <Upload className="h-4 w-4 text-primary" />
-                  )}
-                </div>
-                <p className="text-sm text-muted-foreground">Maksimal 5MB</p>
-              </div>
-
-              <Button
-                onClick={handleAddPengurus}
-                className="w-full"
-                variant={editingIndex !== null ? "default" : "outline"}
-              >
-                <Plus className="mr-2 h-4 w-4" />
-                {editingIndex !== null ? "Update Pengurus" : "Tambah ke Daftar"}
-              </Button>
+            <CardContent>
+              <FormPengurus
+                currentPengurus={currentPengurus}
+                setCurrentPengurus={setCurrentPengurus}
+                editingIndex={editingIndex}
+                onAddPengurus={handleAddPengurus}
+                customJabatanList={customJabatanList}
+                onOpenCustomDialog={() => setCustomDialogOpen(true)}
+              />
             </CardContent>
           </Card>
 
           <div className="space-y-6">
-            <Card className="shadow-medium">
-              <CardHeader>
-                <CardTitle>Keterwakilan Perempuan</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span>Persentase Perempuan</span>
-                    <span
-                      className={
-                        perempuanPercentage >= 30
-                          ? "text-success"
-                          : "text-destructive"
-                      }
-                    >
-                      {perempuanPercentage.toFixed(1)}%
-                    </span>
-                  </div>
-                  <Progress value={perempuanPercentage} className="h-2" />
-                  <p className="text-xs text-muted-foreground">
-                    Minimal 30% keterwakilan perempuan diperlukan
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
+            <ProgressGender pengurusList={pengurusList} />
 
             <Card className="shadow-large">
               <CardHeader>
                 <CardTitle>Daftar Pengurus ({pengurusList.length})</CardTitle>
               </CardHeader>
               <CardContent>
-                {pengurusList.length === 0 ? (
-                  <p className="text-center text-muted-foreground py-8">
-                    Belum ada pengurus yang ditambahkan
-                  </p>
-                ) : (
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Jabatan</TableHead>
-                        <TableHead>Nama</TableHead>
-                        <TableHead>JK</TableHead>
-                        <TableHead>Aksi</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {pengurusList.map((pengurus, index) => (
-                        <TableRow key={index}>
-                          <TableCell className="font-medium">
-                            {pengurus.jabatan}
-                          </TableCell>
-                          <TableCell>{pengurus.nama_lengkap}</TableCell>
-                          <TableCell>
-                            {pengurus.jenis_kelamin === "Laki-laki" ? "L" : "P"}
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex gap-2">
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                onClick={() => handleEdit(index)}
-                              >
-                                <Edit2 className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                onClick={() => handleDelete(index)}
-                              >
-                                <Trash2 className="h-4 w-4 text-destructive" />
-                              </Button>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                )}
+                <ListPengurus
+                  pengurusList={pengurusList}
+                  onEdit={handleEdit}
+                  onDelete={handleDelete}
+                />
               </CardContent>
             </Card>
           </div>
@@ -570,6 +415,12 @@ const InputDataPengurus = () => {
           </CardContent>
         </Card>
       </main>
+
+      <CustomJabatanDialog
+        open={customDialogOpen}
+        onOpenChange={setCustomDialogOpen}
+        onAdd={handleAddCustomJabatan}
+      />
     </div>
   );
 };
