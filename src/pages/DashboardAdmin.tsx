@@ -140,16 +140,16 @@ const DashboardAdmin = () => {
           tanggal_musda,
           lokasi_musda,
           created_at,
-          profiles:dpd_id (
-            full_name,
-            provinsi
-          )
+            profiles!dpd_id (
+                  full_name,
+                  provinsi
+                )
         `
         )
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-
+      console.log({ data });
       setPengajuanList(data as PengajuanWithProfile[]);
     } catch (error) {
       console.error("Error loading pengajuan:", error);
@@ -362,8 +362,7 @@ const DashboardAdmin = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>DPD</TableHead>
-                    <TableHead>Provinsi</TableHead>
+                    <TableHead>DPD Provinsi</TableHead>
                     <TableHead>Tanggal MUSDA</TableHead>
                     <TableHead>Lokasi</TableHead>
                     <TableHead>Status</TableHead>
@@ -374,9 +373,6 @@ const DashboardAdmin = () => {
                 <TableBody>
                   {filteredList.map((pengajuan) => (
                     <TableRow key={pengajuan.id}>
-                      <TableCell className="font-medium">
-                        {pengajuan.profiles?.full_name || "-"}
-                      </TableCell>
                       <TableCell>
                         {pengajuan.profiles?.provinsi || "-"}
                       </TableCell>

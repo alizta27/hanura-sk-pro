@@ -113,3 +113,13 @@ CREATE POLICY "DPD can delete KTP pengurus"
     bucket_id = 'ktp-pengurus' AND
     auth.uid()::text = (storage.foldername(name))[1]
   );
+
+-- Add policy for admin roles to view all profiles
+CREATE POLICY "Admin roles can view all profiles"
+  ON public.profiles FOR SELECT
+  TO authenticated
+  USING (
+    public.has_role(auth.uid(), 'okk') OR 
+    public.has_role(auth.uid(), 'sekjend') OR 
+    public.has_role(auth.uid(), 'ketum')
+  );

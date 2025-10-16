@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Card,
@@ -22,6 +22,8 @@ import {
   Upload,
   ArrowLeft,
   ArrowRight,
+  Eye,
+  Trash,
 } from "lucide-react";
 import { format } from "date-fns";
 import { id } from "date-fns/locale";
@@ -29,6 +31,13 @@ import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import hanuraLogo from "@/assets/hanura-logo.jpg";
+import { getSignedUrl } from "@/lib/storage";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 const UploadLaporanMusda = () => {
   const navigate = useNavigate();
@@ -36,6 +45,51 @@ const UploadLaporanMusda = () => {
   const [lokasi, setLokasi] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [musdaFileUrl, setMusdaFileUrl] = useState<string>("");
+  const [isEdit, setIsEdit] = useState(false);
+
+  useEffect(() => {
+    loadPengajuan();
+  }, []);
+
+  const loadPengajuan = async () => {
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from("pengajuan_sk")
+        .select("*")
+        .eq("dpd_id", user.id)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (error) throw error;
+
+      if (data) {
+        if (
+          data?.file_laporan_musda ||
+          data?.lokasi_musda ||
+          data?.tanggal_musda
+        ) {
+          setIsEdit(true);
+        }
+        setDate(data.tanggal_musda ? new Date(data.tanggal_musda) : undefined);
+        setLokasi(data.lokasi_musda || "");
+        const signedUrl = await getSignedUrl(
+          "laporan-musda",
+          data?.file_laporan_musda!
+        );
+        setMusdaFileUrl(signedUrl || "");
+      }
+    } catch (error) {
+      console.error("Error loading pengajuan:", error);
+      toast.error("Gagal memuat data pengajuan");
+    }
+  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -55,7 +109,7 @@ const UploadLaporanMusda = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!date || !lokasi || !file) {
+    if (!date || !lokasi || (!file && !musdaFileUrl)) {
       toast.error("Semua field wajib diisi");
       return;
     }
@@ -71,24 +125,44 @@ const UploadLaporanMusda = () => {
         return;
       }
 
-      const fileExt = file.name.split(".").pop();
-      const fileName = `${user.id}/${Date.now()}.${fileExt}`;
+      let fileName;
+      if (!musdaFileUrl && file) {
+        const fileExt = file.name.split(".").pop();
+        fileName = `${user.id}/${Date.now()}.${fileExt}`;
 
-      const { error: uploadError } = await supabase.storage
-        .from("laporan-musda")
-        .upload(fileName, file);
+        const { error: uploadError } = await supabase.storage
+          .from("laporan-musda")
+          .upload(fileName, file);
 
-      if (uploadError) {
-        throw uploadError;
+        if (uploadError) {
+          throw uploadError;
+        }
       }
 
-      const { error: dbError } = await supabase.from("pengajuan_sk").insert({
-        dpd_id: user.id,
-        tanggal_musda: format(date, "yyyy-MM-dd"),
-        lokasi_musda: lokasi,
-        file_laporan_musda: fileName,
-        status: "draft",
-      });
+      let dbError;
+      console.log({ musdaFileUrl, fileName, data: musdaFileUrl ?? fileName });
+      if (isEdit) {
+        const { error } = await supabase
+          .from("pengajuan_sk")
+          .update({
+            dpd_id: user.id,
+            tanggal_musda: format(date, "yyyy-MM-dd"),
+            lokasi_musda: lokasi,
+            file_laporan_musda: musdaFileUrl || fileName,
+            status: "draft",
+          })
+          .eq("dpd_id", user.id);
+        dbError = error;
+      } else {
+        const { error } = await supabase.from("pengajuan_sk").insert({
+          dpd_id: user.id,
+          tanggal_musda: format(date, "yyyy-MM-dd"),
+          lokasi_musda: lokasi,
+          file_laporan_musda: fileName,
+          status: "draft",
+        });
+        dbError = error;
+      }
 
       if (dbError) {
         throw dbError;
@@ -99,6 +173,54 @@ const UploadLaporanMusda = () => {
     } catch (error) {
       console.error("Error uploading:", error);
       toast.error("Gagal mengupload laporan");
+    } finally {
+      setUploading(false);
+    }
+  };
+  console.log({ musdaFileUrl });
+  const handleDeleteFile = async () => {
+    if (!musdaFileUrl) {
+      toast.error("Tidak ada file untuk dihapus");
+      return;
+    }
+
+    // Extract the file path relative to your Supabase bucket
+    const filePath = musdaFileUrl.split("/").slice(-2).join("/"); // e.g. "user-id/12345.pdf"
+
+    try {
+      setUploading(true);
+
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error("User tidak terautentikasi");
+        return;
+      }
+
+      // 1️⃣ Delete from Supabase Storage
+      const { error: storageError } = await supabase.storage
+        .from("laporan-musda")
+        .remove([filePath]);
+
+      if (storageError) throw storageError;
+
+      // 2️⃣ Update DB record (set file_laporan_musda to null)
+      const { error: dbError } = await supabase
+        .from("pengajuan_sk")
+        .update({ file_laporan_musda: null })
+        .eq("dpd_id", user.id);
+
+      if (dbError) throw dbError;
+
+      // 3️⃣ Update state
+      setFile(null);
+      setMusdaFileUrl(null);
+
+      toast.success("File laporan berhasil dihapus");
+    } catch (error) {
+      console.error("Error deleting file:", error);
+      toast.error("Gagal menghapus file laporan");
     } finally {
       setUploading(false);
     }
@@ -178,7 +300,6 @@ const UploadLaporanMusda = () => {
                   </PopoverContent>
                 </Popover>
               </div>
-
               <div className="space-y-2">
                 <Label htmlFor="lokasi">Lokasi Pelaksanaan MUSDA</Label>
                 <Input
@@ -189,29 +310,79 @@ const UploadLaporanMusda = () => {
                   required
                 />
               </div>
+              <div className="space-y-3">
+                <Label htmlFor="file" className="text-sm font-medium">
+                  Upload File Laporan (PDF)
+                </Label>
 
-              <div className="space-y-2">
-                <Label htmlFor="file">Upload File Laporan (PDF)</Label>
-                <div className="flex items-center gap-4">
-                  <Input
-                    id="file"
-                    type="file"
-                    accept="application/pdf"
-                    onChange={handleFileChange}
-                    className="flex-1"
-                  />
-                  {file && (
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Upload className="h-4 w-4" />
-                      {file.name}
+                {musdaFileUrl && (
+                  <div className="flex items-center justify-between bg-muted/40 p-2 rounded-lg">
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground truncate">
+                      <Upload className="h-4 w-4 text-muted-foreground" />
+                      <span className="truncate max-w-[200px]">
+                        {musdaFileUrl.split("/").pop()}
+                      </span>
                     </div>
-                  )}
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  Format: PDF, Maksimal 10MB
+                    <div className="flex items-center gap-2">
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              onClick={() =>
+                                window.open(musdaFileUrl, "_blank")
+                              }
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>Lihat File</TooltipContent>
+                        </Tooltip>
+
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              onClick={handleDeleteFile}
+                            >
+                              <Trash className="h-4 w-4 text-destructive" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>Hapus File</TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </div>
+                  </div>
+                )}
+                {musdaFileUrl ? null : (
+                  <div className="flex items-center gap-4">
+                    <Input
+                      id="file"
+                      type="file"
+                      accept="application/pdf"
+                      onChange={handleFileChange}
+                      className="flex-1 cursor-pointer"
+                    />
+                    {file && (
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Upload className="h-4 w-4" />
+                        <span className="truncate max-w-[200px]">
+                          {file.name}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                <p className="text-xs text-muted-foreground">
+                  Format: <span className="font-medium">PDF</span>, Maksimal{" "}
+                  <span className="font-medium">10MB</span>
                 </p>
               </div>
-
               <div className="flex gap-4 pt-4">
                 <Button
                   type="button"

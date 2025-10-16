@@ -89,7 +89,7 @@ const InputDataPengurus = () => {
         .from("pengajuan_sk")
         .select("*")
         .eq("dpd_id", user.id)
-        .eq("status", "draft")
+        // .eq("status", "draft")
         .order("created_at", { ascending: false })
         .limit(1)
         .maybeSingle();
@@ -247,7 +247,7 @@ const InputDataPengurus = () => {
               jabatan: pengurus.jabatan,
               nama_lengkap: pengurus.nama_lengkap,
               jenis_kelamin: pengurus.jenis_kelamin,
-              file_ktp: ktpUrl,
+              file_ktp: ktpUrl as string,
               urutan: pengurus.urutan,
             })
             .eq("id", pengurus.id);

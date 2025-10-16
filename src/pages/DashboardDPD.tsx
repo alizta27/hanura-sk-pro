@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   Card,
   CardContent,
@@ -17,6 +17,7 @@ import { checkAuth } from "@/lib/auth";
 
 const DashboardDPD = () => {
   const [currentStep, setCurrentStep] = useState(1);
+  const [dataMusda, setDataMusda] = useState<any>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -30,6 +31,59 @@ const DashboardDPD = () => {
     verifyAuth();
   }, [navigate]);
 
+  const fetchMusdaProgreess = async () => {
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from("pengajuan_sk")
+        .select("*")
+        .eq("dpd_id", user.id)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (error) throw error;
+
+      setDataMusda(data);
+    } catch (error) {
+      console.error("Error loading pengajuan:", error);
+      toast.error("Gagal memuat data pengajuan");
+    }
+  };
+
+  useEffect(() => {
+    fetchMusdaProgreess();
+  }, []);
+  console.log(dataMusda);
+
+  const currentStepFromData = useMemo(() => {
+    const { tanggal_musda, lokasi_musda, file_laporan_musda, status } =
+      dataMusda ?? {};
+
+    if (
+      [
+        "diverifikasi_okk",
+        "ditolak_okk",
+        "disetujui_sekjend",
+        "ditolak_sekjend",
+        "disetujui_ketum",
+        "ditolak_ketum",
+        "diupload",
+      ].includes(status)
+    )
+      return 3;
+
+    if (["sk_terbit"].includes(status)) return 4;
+
+    if (tanggal_musda && lokasi_musda && file_laporan_musda) return 2;
+
+    return 1;
+  }, [dataMusda]);
+
   const steps = [
     {
       number: 1,
@@ -37,7 +91,7 @@ const DashboardDPD = () => {
       description:
         "Upload file PDF laporan hasil MUSDA dan informasi pelaksanaan",
       icon: FileText,
-      completed: false,
+      completed: Boolean(currentStepFromData > 1),
       route: "/upload-laporan",
     },
     {
@@ -45,7 +99,7 @@ const DashboardDPD = () => {
       title: "Input Data Pengurus",
       description: "Isi data lengkap pengurus DPD beserta dokumen pendukung",
       icon: Users,
-      completed: false,
+      completed: Boolean(currentStepFromData > 2),
       route: "/input-pengurus",
     },
     {
@@ -54,12 +108,13 @@ const DashboardDPD = () => {
       description:
         "Pantau status persetujuan SK dari OKK, Sekjend, hingga Ketum",
       icon: CheckCircle2,
-      completed: false,
+      completed: Boolean(currentStepFromData > 3),
       route: "/progress-sk",
     },
   ];
-
-  const progressPercentage = (currentStep / steps.length) * 100;
+  console.log({ currentStepFromData });
+  const stepProgressLimit = currentStepFromData === 4 ? 100 : 90;
+  const progressPercentage = (currentStep / steps.length) * stepProgressLimit;
 
   const handleLogout = async () => {
     const { error } = await supabase.auth.signOut();
